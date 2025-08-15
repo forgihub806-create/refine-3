@@ -1,10 +1,9 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { type IStorage } from "./storage.js";
-import { insertMediaItemSchema, insertTagSchema, insertCategorySchema, type MediaSearchParams, type InsertMediaItem } from "@shared/schema";
+import { insertMediaItemSchema, insertTagSchema, insertCategorySchema, type MediaSearchParams, type InsertMediaItem } from "../shared/schema.js";
 import { z } from "zod";
 import { WebSocketServer } from 'ws';
-
 
 // MultiScraper integration
 import fetch from "node-fetch";
@@ -56,7 +55,7 @@ export function registerRoutes(app: Express, storage: IStorage): Server {
 
   // Health check endpoint
   app.get('/health', (req: Request, res: Response) => {
-    res.json({ status: 'OK' });
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
   });
 
   // API routes
@@ -780,35 +779,7 @@ export function registerRoutes(app: Express, storage: IStorage): Server {
     });
   });
 
-  // API Routes
-  app.get('/api/media', async (req: Request, res: Response) => {
-    try {
-      const page = parseInt(req.query.page as string) || 1;
-      const limit = parseInt(req.query.limit as string) || 20;
-      const offset = (page - 1) * limit;
-
-      // TODO: Implement pagination with storage
-      const media = await storage.getMedia(limit, offset);
-      res.json({ media, page, limit });
-    } catch (error) {
-      res.status(500).json({ error: 'Failed to fetch media' });
-    }
-  });
-
-  app.post('/api/media', async (req: Request, res: Response) => {
-    try {
-      const { urls } = req.body;
-      // TODO: Implement bulk media creation
-      const results = [];
-      for (const url of urls) {
-        const media = await storage.addMedia({ url, title: '', status: 'pending' });
-        results.push(media);
-      }
-      res.json({ results });
-    } catch (error) {
-      res.status(500).json({ error: 'Failed to add media' });
-    }
-  });
+  
 
   return httpServer;
 }

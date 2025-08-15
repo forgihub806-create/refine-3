@@ -83,12 +83,10 @@ export async function startServer(dbName?: string): Promise<{ app: express.Appli
 
   const port = parseInt(process.env.PORT || '5000', 10);
 
-  
-
   return new Promise((resolve) => {
-    server!.listen(port, "localhost", () => {
-      log(`serving on http://localhost:${port}`);
-      console.log(`Backend is listening on http://localhost:${port}`);
+    server!.listen(port, "0.0.0.0", () => {
+      log(`serving on http://0.0.0.0:${port}`);
+      console.log(`Backend is listening on http://0.0.0.0:${port}`);
       resolve({ app, server: server!, port, storage: storage! });
     });
   });
