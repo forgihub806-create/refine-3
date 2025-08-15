@@ -1,0 +1,53 @@
+C:\Users\sujit\Downloads\refine-3-main>npm run dev
+
+> rest-express@1.0.0 dev
+> concurrently "npm:dev:server" "npm:dev:electron"
+
+[dev:electron] 
+[dev:electron] > rest-express@1.0.0 dev:electron
+[dev:electron] > cross-env NODE_ENV=development electron .
+[dev:electron]
+[dev:server]
+[dev:server] > rest-express@1.0.0 dev:server
+[dev:server] > cross-env NODE_ENV=development tsx watch server/index.ts
+[dev:server]
+[dev:electron] 
+[dev:electron] NODE_ENV: development
+[dev:electron] Development mode: server is managed externally.
+[dev:electron] Starting health check for port 5000
+[dev:electron] Health check attempt 1 failed: request to http://localhost:5000/health failed, reason: 
+[dev:electron] Health check attempt 2 failed: request to http://localhost:5000/health failed, reason: 
+[dev:electron] Health check attempt 3 failed: request to http://localhost:5000/health failed, reason: 
+[dev:electron] Health check attempt 4 failed: request to http://localhost:5000/health failed, reason: 
+[dev:electron] Health check attempt 5 failed: request to http://localhost:5000/health failed, reason: 
+[dev:electron] Health check attempt 6 failed: request to http://localhost:5000/health failed, reason: 
+[dev:electron] Health check attempt 7 failed: request to http://localhost:5000/health failed, reason: 
+[dev:electron] Health check attempt 8 failed: request to http://localhost:5000/health failed, reason: 
+[dev:electron] Health check attempt 9 failed: request to http://localhost:5000/health failed, reason: 
+[dev:electron] Health check attempt 10 failed: request to http://localhost:5000/health failed, reason: 
+[dev:electron] Health check attempt 11 failed: request to http://localhost:5000/health failed, reason: 
+[dev:electron] Health check attempt 12 failed: request to http://localhost:5000/health failed, reason: 
+[dev:electron] Health check attempt 13 failed: request to http://localhost:5000/health failed, reason: 
+[dev:electron] Health check attempt 14 failed: request to http://localhost:5000/health failed, reason: 
+[dev:electron] Health check attempt 15 failed: request to http://localhost:5000/health failed, reason: 
+[dev:electron] Health check attempt 16 failed: request to http://localhost:5000/health failed, reason: 
+[dev:electron] Health check attempt 17 failed: request to http://localhost:5000/health failed, reason: 
+[dev:electron] Health check attempt 18 failed: request to http://localhost:5000/health failed, reason: 
+[dev:electron] Health check attempt 19 failed: request to http://localhost:5000/health failed, reason: 
+[dev:electron] Health check attempt 20 failed: request to http://localhost:5000/health failed, reason: 
+[dev:electron] Health check attempt 21 failed: request to http://localhost:5000/health failed, reason: 
+[dev:electron] Health check attempt 22 failed: request to http://localhost:5000/health failed, reason: 
+[dev:electron] Health check attempt 23 failed: request to http://localhost:5000/health failed, reason: 
+[dev:electron] Health check attempt 24 failed: request to http://localhost:5000/health failed, reason: 
+[dev:electron] Health check attempt 25 failed: request to http://localhost:5000/health failed, reason: 
+[dev:electron] Health check attempt 26 failed: request to http://localhost:5000/health failed, reason: 
+[dev:electron] Health check attempt 27 failed: request to http://localhost:5000/health failed, reason: 
+[dev:electron] Health check attempt 28 failed: request to http://localhost:5000/health failed, reason: 
+[dev:electron] Health check attempt 29 failed: request to http://localhost:5000/health failed, reason: 
+[dev:electron] Health check attempt 30 failed: request to http://localhost:5000/health failed, reason: 
+[dev:electron] Health check failed after 30 attempts, continuing anyway
+[dev:electron] [13144:0815/142051.970:ERROR:CONSOLE:1] "Request Autofill.enable failed. {"code":-32601,"message":"'Autofill.enable' wasn't found"}", source: devtools://devtools/bundled/core/protocol_client/protocol_client.js (1)
+[dev:electron] [13144:0815/142051.970:ERROR:CONSOLE:1] "Request Autofill.setAddresses failed. {"code":-32601,"message":"'Autofill.setAddresses' wasn't found"}", source: devtools://devtools/bundled/core/protocol_client/protocol_client.js (1)
+[dev:electron] (node:13144) electron: Failed to load URL: http://localhost:5000/ with error: ERR_CONNECTION_REFUSED
+[dev:electron] (Use `electron --trace-warnings ...` to show where the warning was created)
+[dev:electron] npm run dev:electron exited with code 0
