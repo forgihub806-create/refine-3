@@ -120,13 +120,20 @@ async function healthCheck(port) {
       const response = await fetch(`http://localhost:${port}/health`, {
         signal: AbortSignal.timeout(2000)
       });
-      if (response.ok) {
-        if (response.status === 200) {
+      if (response.ok && response.status === 200) {
+        try {
+          // Try to parse as JSON first
           const data = await response.json();
           console.log('Health check passed:', data);
           return;
-        } else {
-          console.log(`Health check attempt ${i + 1}: Server responded with status ${response.status}`);
+        } catch (jsonError) {
+          // If JSON parsing fails, check if it's a simple text response
+          const text = await response.text();
+          if (text === 'OK' || text.includes('OK')) {
+            console.log('Health check passed (text response):', text);
+            return;
+          }
+          throw new Error(`Unexpected response format: ${text}`);
         }
       } else {
         console.log(`Health check attempt ${i + 1}: Server responded with status ${response.status}`);
