@@ -10,7 +10,7 @@ function enableCORS(req: Request, res: Response, next: NextFunction) {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  
+
   if (req.method === 'OPTIONS') {
     res.sendStatus(200);
   } else {
@@ -90,11 +90,11 @@ export async function startServer(dbName?: string): Promise<{ app: express.Appli
   return new Promise((resolve) => {
     server!.listen({
       port,
-      host: "127.0.0.1",
+      host: "0.0.0.0",
       reusePort: true,
     }, () => {
-      log(`serving on http://127.0.0.1:${port}`);
-      console.log(`Backend is listening on http://127.0.0.1:${port}`);
+      log(`serving on http://0.0.0.0:${port}`);
+      console.log(`Backend is listening on http://0.0.0.0:${port}`);
       resolve({ app, server: server!, port, storage: storage! });
     });
   });

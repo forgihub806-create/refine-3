@@ -1,4 +1,3 @@
-                  
 import { app, BrowserWindow } from 'electron';
 console.log('NODE_ENV:', process.env.NODE_ENV);
 import path from 'path';
@@ -27,7 +26,7 @@ const startServer = () => {
     serverProcess.stdout.on('data', (data) => {
       const output = data.toString();
       console.log('Server:', output);
-      
+
       // Look for server startup confirmation
       if ((output.includes('Server running on') || output.includes('listening on') || output.includes('started at')) && !serverStarted) {
         serverStarted = true;
@@ -76,7 +75,7 @@ async function createWindow() {
     } else {
       console.log('Development mode: server is managed externally.');
     }
-    
+
     // Wait for server to be ready
     await healthCheck(serverInfo.port);
   } catch (error) {
@@ -122,9 +121,21 @@ async function healthCheck(port) {
         timeout: 2000
       });
       if (response.ok) {
-        const data = await response.json();
-        console.log('Health check passed:', data);
-        return;
+        // The original code had a bug here where it tried to parse "OK" as JSON.
+        // We expect a JSON response, so we'll parse it. If it's just "OK",
+        // we'll treat it as a valid response if status is 200.
+        if (response.status === 200) {
+            try {
+                const data = await response.json();
+                console.log('Health check passed:', data);
+                return;
+            } catch (jsonError) {
+                console.log('Health check received non-JSON response, but status is OK.');
+                return; // Consider non-JSON OK as success if status is 200
+            }
+        } else {
+            console.log(`Health check attempt ${i + 1}: Server responded with status ${response.status}`);
+        }
       } else {
         console.log(`Health check attempt ${i + 1}: Server responded with status ${response.status}`);
       }
@@ -155,9 +166,9 @@ app.on('before-quit', (event) => {
   if (serverProcess) {
     event.preventDefault();
     console.log('Stopping server...');
-    
+
     serverProcess.kill('SIGTERM');
-    
+
     setTimeout(() => {
       if (serverProcess && !serverProcess.killed) {
         serverProcess.kill('SIGKILL');

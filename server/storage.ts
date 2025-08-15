@@ -287,7 +287,7 @@ export class DrizzleStorage implements IStorage {
 
   async initializeDatabase() {
     console.log('DrizzleStorage.initializeDatabase: start');
-    
+
     try {
       // Execute each statement separately to avoid hanging
       const statements = [
@@ -310,20 +310,20 @@ export class DrizzleStorage implements IStorage {
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
           updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )`,
-        
+
         `CREATE TABLE IF NOT EXISTS tags (
           id TEXT PRIMARY KEY,
           name TEXT UNIQUE NOT NULL,
           color TEXT DEFAULT 'primary',
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )`,
-        
+
         `CREATE TABLE IF NOT EXISTS categories (
           id TEXT PRIMARY KEY,
           name TEXT UNIQUE NOT NULL,
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )`,
-        
+
         `CREATE TABLE IF NOT EXISTS media_item_tags (
           id TEXT PRIMARY KEY,
           media_item_id TEXT,
@@ -331,7 +331,7 @@ export class DrizzleStorage implements IStorage {
           FOREIGN KEY (media_item_id) REFERENCES media_items(id) ON DELETE CASCADE,
           FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
         )`,
-        
+
         `CREATE TABLE IF NOT EXISTS media_item_categories (
           id TEXT PRIMARY KEY,
           media_item_id TEXT,
@@ -339,7 +339,7 @@ export class DrizzleStorage implements IStorage {
           FOREIGN KEY (media_item_id) REFERENCES media_items(id) ON DELETE CASCADE,
           FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
         )`,
-        
+
         `CREATE TABLE IF NOT EXISTS api_options (
           id TEXT PRIMARY KEY,
           name TEXT UNIQUE NOT NULL,
@@ -380,12 +380,12 @@ export class DrizzleStorage implements IStorage {
       }
 
       console.log('DrizzleStorage.initializeDatabase: tables created');
-      
+
     } catch (error) {
       console.error('DrizzleStorage.initializeDatabase: error', error);
       throw error;
     }
-    
+
     console.log('DrizzleStorage.initializeDatabase: end');
   }
 }

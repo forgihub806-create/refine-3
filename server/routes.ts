@@ -52,9 +52,70 @@ async function scrapeMetadata(mediaItemId: string, storage: IStorage) {
 
 export async function registerRoutes(app: Express, storage: IStorage): Promise<Server> {
 
-  app.get("/health", (req, res) => {
-    res.status(200).json({ status: 'ok' });
+  // Health check endpoint
+  app.get('/health', (req, res) => {
+    res.json({ status: 'OK' });
   });
+
+  // API routes
+  app.get('/api/categories', async (req, res) => {
+    try {
+      const categories = await storage.getCategories();
+      res.json(categories || []);
+    } catch (error) {
+      console.error("Get categories error:", error);
+      res.status(500).json({ error: "Failed to fetch categories" });
+    }
+  });
+
+  app.get('/api/media/pages', async (req, res) => {
+    try {
+      const { search, tags, categories, type, sizeRange, page = "1", limit = "20" } = req.query;
+
+      const params: MediaSearchParams = {
+        search: search as string,
+        tags: tags ? (Array.isArray(tags) ? tags as string[] : [tags as string]) : undefined,
+        categories: categories ? (Array.isArray(categories) ? categories as string[] : [categories as string]) : undefined,
+        type: type as "video" | "folder",
+        sizeRange: sizeRange as "small" | "medium" | "large",
+        page: parseInt(page as string),
+        limit: parseInt(limit as string),
+      };
+
+      const result = await storage.getMediaItems(params);
+
+      // Check for missing metadata and trigger background fetching for current page items
+      const itemsNeedingMetadata = result.items.filter(item =>
+        !item.title || item.title === "Processing..." ||
+        !item.thumbnail || !item.scrapedAt
+      );
+
+      // Trigger background metadata fetching for items missing data
+      if (itemsNeedingMetadata.length > 0) {
+        Promise.all(
+          itemsNeedingMetadata.map(item => scrapeMetadata(item.id, storage))
+        ).catch(error => {
+          console.error("Background metadata fetching failed:", error);
+        });
+      }
+
+      res.json(result);
+    } catch (error) {
+      console.error("Get media items error:", error);
+      res.status(500).json({ error: "Failed to fetch media items" });
+    }
+  });
+
+  app.get('/api/api-options', async (req, res) => {
+    try {
+      const options = await storage.getApiOptions();
+      res.json(options);
+    } catch (error) {
+      console.error("Get API options error:", error);
+      res.status(500).json({ error: "Failed to fetch API options" });
+    }
+  });
+
 
   // Media Items Routes
   app.get("/api/media", async (req, res) => {
@@ -73,8 +134,8 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
       const result = await storage.getMediaItems(params);
 
       // Check for missing metadata and trigger background fetching for current page items
-      const itemsNeedingMetadata = result.items.filter(item => 
-        !item.title || item.title === "Processing..." || 
+      const itemsNeedingMetadata = result.items.filter(item =>
+        !item.title || item.title === "Processing..." ||
         !item.thumbnail || !item.scrapedAt
       );
 
@@ -114,8 +175,8 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
         let mediaItem = await storage.getMediaItemByUrl(url);
         if (!mediaItem) {
           // Create with minimal metadata - don't auto-scrape
-          mediaItem = await storage.createMediaItem({ 
-            url, 
+          mediaItem = await storage.createMediaItem({
+            url,
             title: "Processing...",
             description: null,
             thumbnail: null
@@ -168,7 +229,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
       }
 
       // Check if we need to fetch metadata from database first
-      const needsMetadata = !mediaItem.title || mediaItem.title === "Processing..." || 
+      const needsMetadata = !mediaItem.title || mediaItem.title === "Processing..." ||
                            !mediaItem.thumbnail || !mediaItem.scrapedAt;
 
       if (needsMetadata) {
@@ -191,7 +252,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
         const updatedItem = await storage.updateMediaItem(req.params.id, updates);
         res.json({ success: true, mediaItem: updatedItem });
       } else {
-        await storage.updateMediaItem(req.params.id, { 
+        await storage.updateMediaItem(req.params.id, {
           error: "No download link found from proxies",
           downloadFetchedAt: new Date()
         });
@@ -212,21 +273,21 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
       }
 
       // Check if metadata exists in database
-      const hasMetadata = mediaItem.title && mediaItem.title !== "Processing..." && 
+      const hasMetadata = mediaItem.title && mediaItem.title !== "Processing..." &&
                          mediaItem.thumbnail && mediaItem.scrapedAt;
 
       if (!hasMetadata) {
         // Invoke multiScraper to fetch metadata
         await scrapeMetadata(req.params.id, storage);
         const updatedItem = await storage.getMediaItem(req.params.id);
-        res.json({ 
-          success: true, 
+        res.json({
+          success: true,
           mediaItem: updatedItem,
           action: "fetched"
         });
       } else {
-        res.json({ 
-          success: true, 
+        res.json({
+          success: true,
           mediaItem: mediaItem,
           action: "cached"
         });
@@ -249,7 +310,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
 
       // If specific API requested, use only that API
       if (apiId) {
-        const apiOption = await storage.getApiOption(apiId);
+        const apiOption = await storage.getApiOption(apiId as string);
         if (!apiOption || !apiOption.isActive) {
           return res.status(400).json({ error: "Invalid or inactive API selected" });
         }
@@ -380,16 +441,6 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
   });
 
   // Categories Routes
-  app.get("/api/categories", async (req, res) => {
-    try {
-      const categories = await storage.getCategories();
-      res.json(categories || []);
-    } catch (error) {
-      console.error("Get categories error:", error);
-      res.status(500).json({ error: "Failed to fetch categories" });
-    }
-  });
-
   app.post("/api/categories", async (req, res) => {
     try {
       const validatedData = insertCategorySchema.parse(req.body);
@@ -440,15 +491,6 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
   });
 
   // API Options Routes
-  app.get("/api/api-options", async (req, res) => {
-    try {
-      const options = await storage.getApiOptions();
-      res.json(options);
-    } catch (error) {
-      res.status(500).json({ error: "Failed to fetch API options" });
-    }
-  });
-
   app.post("/api/api-options", async (req, res) => {
     try {
       const apiOption = await storage.createApiOption(req.body);
@@ -508,7 +550,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
         res.json(data);
 
     } catch (err) {
-        res.status(500).json({ error: "err instanceof Error ? err.message : 'Unknown error'" });
+        res.status(500).json({ error: err instanceof Error ? err.message : 'Unknown error' });
     }
   });
 
@@ -542,7 +584,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
         const text = await response.text();
         res.send(text);
     } catch (err) {
-        res.status(500).json({ error: "err instanceof Error ? err.message : 'Unknown error'" });
+        res.status(500).json({ error: err instanceof Error ? err.message : 'Unknown error' });
     }
   });
 
@@ -567,7 +609,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
       const data = await response.json();
       res.json(data);
     } catch (err) {
-      res.status(500).json({ error: "err instanceof Error ? err.message : 'Unknown error'" });
+      res.status(500).json({ error: err instanceof Error ? err.message : 'Unknown error' });
     }
   });
 
@@ -596,7 +638,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
       const data = await response.json();
       res.json(data);
     } catch (err) {
-      res.status(500).json({ error: "err instanceof Error ? err.message : 'Unknown error'" });
+      res.status(500).json({ error: err instanceof Error ? err.message : 'Unknown error' });
     }
   });
 
@@ -627,7 +669,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
       const data = await response.text();
       res.send(data);
     } catch (err) {
-      res.status(500).json({ error: "err instanceof Error ? err.message : 'Unknown error'" });
+      res.status(500).json({ error: err instanceof Error ? err.message : 'Unknown error' });
     }
   });
 
@@ -661,7 +703,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
         const text = await response.text();
         res.send(text);
     } catch (err) {
-        res.status(500).json({ error: "err instanceof Error ? err.message : 'Unknown error'" });
+        res.status(500).json({ error: err instanceof Error ? err.message : 'Unknown error' });
     }
   });
 
@@ -716,7 +758,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
         const text = await response.text();
         res.send(text);
     } catch (err) {
-        res.status(500).json({ error: "err instanceof Error ? err.message : 'Unknown error'" });
+        res.status(500).json({ error: err instanceof Error ? err.message : 'Unknown error' });
     }
   });
 
@@ -778,8 +820,8 @@ async function trySpecificProxy(originalUrl: string, proxy: any) {
     }
 
     let j: any;
-    try { 
-      j = await res.json(); 
+    try {
+      j = await res.json();
     } catch (e) {
       const text = await res.text();
       j = { rawText: text };
@@ -812,7 +854,7 @@ async function trySpecificProxy(originalUrl: string, proxy: any) {
     if (linkCandidates.length) {
       const download_url = linkCandidates[0];
       const expires_at = parseExpiryFromResponse(j, download_url);
-      const size = j?.size || j?.filesize || j?.file_size || j?.length || 
+      const size = j?.size || j?.filesize || j?.file_size || j?.length ||
                   j?.data?.size || j?.result?.size || null;
 
       return { download_url, expires_at, size, raw: j, proxy: proxy.name };
@@ -853,8 +895,8 @@ async function tryProxiesForDownload(originalUrl: string) {
       }
 
       let j: any;
-      try { 
-        j = await res.json(); 
+      try {
+        j = await res.json();
       } catch (e) {
         const text = await res.text();
         j = { rawText: text };
@@ -893,7 +935,7 @@ async function tryProxiesForDownload(originalUrl: string) {
         const expires_at = parseExpiryFromResponse(j, download_url);
 
         // Enhanced size extraction
-        const size = j?.size || j?.filesize || j?.file_size || j?.length || 
+        const size = j?.size || j?.filesize || j?.file_size || j?.length ||
                     j?.data?.size || j?.result?.size || null;
 
         // Enhanced metadata extraction
