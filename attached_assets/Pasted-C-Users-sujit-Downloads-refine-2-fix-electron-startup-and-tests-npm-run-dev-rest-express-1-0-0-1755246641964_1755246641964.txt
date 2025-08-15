@@ -1,0 +1,52 @@
+C:\Users\sujit\Downloads\refine-2-fix-electron-startup-and-tests>npm run dev
+
+> rest-express@1.0.0 dev
+> concurrently "npm:dev:server" "npm:dev:electron"
+
+[dev:server] 
+[dev:server] > rest-express@1.0.0 dev:server
+[dev:server] > cross-env NODE_ENV=development tsx watch server/index.ts
+[dev:server]
+[dev:electron]
+[dev:electron] > rest-express@1.0.0 dev:electron
+[dev:electron] > cross-env NODE_ENV=development electron .
+[dev:electron]
+[dev:electron] 
+[dev:electron] NODE_ENV: development
+[dev:electron] Development mode: server is managed externally.
+[dev:electron] Starting health check for port 5000
+[dev:electron] Health check attempt 1 failed: Unexpected token 'O', "OK" is not valid JSON
+[dev:electron] Health check attempt 2 failed: Unexpected token 'O', "OK" is not valid JSON
+[dev:electron] Health check attempt 3 failed: Unexpected token 'O', "OK" is not valid JSON
+[dev:electron] Health check attempt 4 failed: Unexpected token 'O', "OK" is not valid JSON
+[dev:electron] Health check attempt 5 failed: Unexpected token 'O', "OK" is not valid JSON
+[dev:electron] Health check attempt 6 failed: Unexpected token 'O', "OK" is not valid JSON
+[dev:electron] Health check attempt 7 failed: Unexpected token 'O', "OK" is not valid JSON
+[dev:electron] Health check attempt 8 failed: Unexpected token 'O', "OK" is not valid JSON
+[dev:electron] Health check attempt 9 failed: Unexpected token 'O', "OK" is not valid JSON
+[dev:electron] Health check attempt 10 failed: Unexpected token 'O', "OK" is not valid JSON
+[dev:electron] Health check attempt 11 failed: Unexpected token 'O', "OK" is not valid JSON
+[dev:electron] Health check attempt 12 failed: Unexpected token 'O', "OK" is not valid JSON
+[dev:electron] Health check attempt 13 failed: Unexpected token 'O', "OK" is not valid JSON
+[dev:electron] Health check attempt 14 failed: Unexpected token 'O', "OK" is not valid JSON
+[dev:electron] Health check attempt 15 failed: Unexpected token 'O', "OK" is not valid JSON
+[dev:electron] Health check attempt 16 failed: Unexpected token 'O', "OK" is not valid JSON
+[dev:electron] Health check attempt 17 failed: Unexpected token 'O', "OK" is not valid JSON
+[dev:electron] Health check attempt 18 failed: Unexpected token 'O', "OK" is not valid JSON
+[dev:electron] Health check attempt 19 failed: Unexpected token 'O', "OK" is not valid JSON
+[dev:electron] Health check attempt 20 failed: Unexpected token 'O', "OK" is not valid JSON
+[dev:electron] Health check attempt 21 failed: Unexpected token 'O', "OK" is not valid JSON
+[dev:electron] Health check attempt 22 failed: Unexpected token 'O', "OK" is not valid JSON
+[dev:electron] Health check attempt 23 failed: Unexpected token 'O', "OK" is not valid JSON
+[dev:electron] Health check attempt 24 failed: Unexpected token 'O', "OK" is not valid JSON
+[dev:electron] Health check attempt 25 failed: Unexpected token 'O', "OK" is not valid JSON
+[dev:electron] Health check attempt 26 failed: Unexpected token 'O', "OK" is not valid JSON
+[dev:electron] Health check attempt 27 failed: Unexpected token 'O', "OK" is not valid JSON
+[dev:electron] Health check attempt 28 failed: Unexpected token 'O', "OK" is not valid JSON
+[dev:electron] Health check attempt 29 failed: Unexpected token 'O', "OK" is not valid JSON
+[dev:electron] Health check attempt 30 failed: Unexpected token 'O', "OK" is not valid JSON
+[dev:electron] Health check failed after 30 attempts, continuing anyway
+[dev:electron] [7692:0815/134847.267:ERROR:CONSOLE:1] "Request Autofill.enable failed. {"code":-32601,"message":"'Autofill.enable' wasn't found"}", source: devtools://devtools/bundled/core/protocol_client/protocol_client.js (1)
+[dev:electron] [7692:0815/134847.267:ERROR:CONSOLE:1] "Request Autofill.setAddresses failed. {"code":-32601,"message":"'Autofill.setAddresses' wasn't found"}", source: devtools://devtools/bundled/core/protocol_client/protocol_client.js (1)
+[dev:electron] [7692:0815/135458.954:ERROR:CONSOLE:1] "Request Autofill.enable failed. {"code":-32601,"message":"'Autofill.enable' wasn't found"}", source: devtools://devtools/bundled/core/protocol_client/protocol_client.js (1)
+[dev:electron] [7692:0815/135458.954:ERROR:CONSOLE:1] "Request Autofill.setAddresses failed. {"code":-32601,"message":"'Autofill.setAddresses' wasn't found"}", source: devtools://devtools/bundled/core/protocol_client/protocol_client.js (1)
