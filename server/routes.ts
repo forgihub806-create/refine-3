@@ -55,6 +55,7 @@ export function registerRoutes(app: Express, storage: IStorage): Server {
 
   // Health check endpoint
   app.get('/health', (req: Request, res: Response) => {
+    console.log('Health check requested');
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
   });
 

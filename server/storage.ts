@@ -60,8 +60,10 @@ export interface IStorage {
 export class DrizzleStorage implements IStorage {
   private db;
   private sqlite;
+  private dbPath: string; // Add dbPath property
 
   constructor(dbName: string = 'cipherbox.db') {
+    this.dbPath = dbName; // Initialize dbPath
     this.sqlite = new Database(dbName, { verbose: console.log });
     this.db = drizzle(this.sqlite, { schema, logger: true });
   }
@@ -292,6 +294,15 @@ export class DrizzleStorage implements IStorage {
     console.log('DrizzleStorage.initializeDatabase: start');
 
     try {
+      // Create a new database connection
+      this.db = drizzle(new Database(this.dbPath), { schema });
+      console.log('Database connection established');
+    } catch (error) {
+      console.error('DrizzleStorage.initializeDatabase: error', error);
+      throw error;
+    }
+
+    try {
       // Execute each statement separately to avoid hanging
       const statements = [
         `CREATE TABLE IF NOT EXISTS media_items (
@@ -385,7 +396,7 @@ export class DrizzleStorage implements IStorage {
       console.log('DrizzleStorage.initializeDatabase: tables created');
 
     } catch (error) {
-      console.error('DrizzleStorage.initializeDatabase: error', error);
+      console.error('DrizzleStorage.initializeDatabase: error during table creation or data insertion', error);
       throw error;
     }
 

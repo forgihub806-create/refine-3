@@ -132,7 +132,7 @@ async function healthCheck(port) {
         console.log(`Health check attempt ${i + 1}: Server responded with status ${response.status}`);
       }
     } catch (e) {
-      console.log(`Health check attempt ${i + 1} failed:`, e.message);
+      console.log(`Health check attempt ${i + 1} failed:`, e.message || e.code || e);
     }
     await new Promise(resolve => setTimeout(resolve, 1000));
   }

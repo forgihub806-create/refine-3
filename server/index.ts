@@ -23,11 +23,16 @@ let storage: IStorage | null = null;
 
 export async function startServer(dbName?: string): Promise<{ app: express.Application; server: Server; port: number, storage: IStorage }> {
   console.log('Starting backend server...');
-  storage = new DrizzleStorage(dbName);
-  console.log('DrizzleStorage instance created');
-  // Wait for database initialization to complete
-  await storage.initializeDatabase();
-  console.log('Database initialized');
+  try {
+    storage = new DrizzleStorage(dbName);
+    console.log('DrizzleStorage instance created');
+    // Wait for database initialization to complete
+    await storage.initializeDatabase();
+    console.log('Database initialized');
+  } catch (error) {
+    console.error('Database initialization failed:', error);
+    throw error;
+  }
   const app = express();
   app.use(enableCORS);
   app.use(express.json());
@@ -83,11 +88,15 @@ export async function startServer(dbName?: string): Promise<{ app: express.Appli
 
   const port = parseInt(process.env.PORT || '5000', 10);
 
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     server!.listen(port, "0.0.0.0", () => {
       log(`serving on http://0.0.0.0:${port}`);
       console.log(`Backend is listening on http://0.0.0.0:${port}`);
+      console.log(`Health endpoint available at: http://0.0.0.0:${port}/health`);
       resolve({ app, server: server!, port, storage: storage! });
+    }).on('error', (error) => {
+      console.error('Server failed to start:', error);
+      reject(error);
     });
   });
 }
@@ -113,5 +122,10 @@ export async function stopServer(): Promise<void> {
 
 // Always start the server if this file is run directly
 if (process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/\\/g, '/'))) {
-  startServer();
+  startServer().then(({ port }) => {
+    console.log(`✅ Server started successfully on port ${port}`);
+  }).catch((error) => {
+    console.error('❌ Failed to start server:', error);
+    process.exit(1);
+  });
 }
