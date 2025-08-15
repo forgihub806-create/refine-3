@@ -118,23 +118,15 @@ async function healthCheck(port) {
   for (let i = 0; i < 30; i++) { // Increased attempts
     try {
       const response = await fetch(`http://localhost:${port}/health`, {
-        timeout: 2000
+        signal: AbortSignal.timeout(2000)
       });
       if (response.ok) {
-        // The original code had a bug here where it tried to parse "OK" as JSON.
-        // We expect a JSON response, so we'll parse it. If it's just "OK",
-        // we'll treat it as a valid response if status is 200.
         if (response.status === 200) {
-            try {
-                const data = await response.json();
-                console.log('Health check passed:', data);
-                return;
-            } catch (jsonError) {
-                console.log('Health check received non-JSON response, but status is OK.');
-                return; // Consider non-JSON OK as success if status is 200
-            }
+          const data = await response.json();
+          console.log('Health check passed:', data);
+          return;
         } else {
-            console.log(`Health check attempt ${i + 1}: Server responded with status ${response.status}`);
+          console.log(`Health check attempt ${i + 1}: Server responded with status ${response.status}`);
         }
       } else {
         console.log(`Health check attempt ${i + 1}: Server responded with status ${response.status}`);

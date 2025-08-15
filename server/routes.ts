@@ -1,8 +1,10 @@
-import type { Express } from "express";
+import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
-import { type IStorage } from "./storage";
+import { type IStorage } from "./storage.js";
 import { insertMediaItemSchema, insertTagSchema, insertCategorySchema, type MediaSearchParams, type InsertMediaItem } from "@shared/schema";
 import { z } from "zod";
+import { WebSocketServer } from 'ws';
+
 
 // MultiScraper integration
 import fetch from "node-fetch";
@@ -50,15 +52,15 @@ async function scrapeMetadata(mediaItemId: string, storage: IStorage) {
   }
 }
 
-export async function registerRoutes(app: Express, storage: IStorage): Promise<Server> {
+export function registerRoutes(app: Express, storage: IStorage): Server {
 
   // Health check endpoint
-  app.get('/health', (req, res) => {
+  app.get('/health', (req: Request, res: Response) => {
     res.json({ status: 'OK' });
   });
 
   // API routes
-  app.get('/api/categories', async (req, res) => {
+  app.get('/api/categories', async (req: Request, res: Response) => {
     try {
       const categories = await storage.getCategories();
       res.json(categories || []);
@@ -68,7 +70,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.get('/api/media/pages', async (req, res) => {
+  app.get('/api/media/pages', async (req: Request, res: Response) => {
     try {
       const { search, tags, categories, type, sizeRange, page = "1", limit = "20" } = req.query;
 
@@ -106,7 +108,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.get('/api/api-options', async (req, res) => {
+  app.get('/api/api-options', async (req: Request, res: Response) => {
     try {
       const options = await storage.getApiOptions();
       res.json(options);
@@ -118,7 +120,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
 
 
   // Media Items Routes
-  app.get("/api/media", async (req, res) => {
+  app.get("/api/media", async (req: Request, res: Response) => {
     try {
       const { search, tags, type, sizeRange, page = "1", limit = "20" } = req.query;
 
@@ -154,7 +156,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.get("/api/media/:id", async (req, res) => {
+  app.get("/api/media/:id", async (req: Request, res: Response) => {
     try {
       const mediaItem = await storage.getMediaItem(req.params.id);
       if (!mediaItem) {
@@ -166,7 +168,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.post("/api/media", async (req, res) => {
+  app.post("/api/media", async (req: Request, res: Response) => {
     try {
       const { urls } = z.object({ urls: z.array(z.string().url()) }).parse(req.body);
       const createdItems = [];
@@ -195,7 +197,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.put("/api/media/:id", async (req, res) => {
+  app.put("/api/media/:id", async (req: Request, res: Response) => {
     try {
       const updates = req.body;
       const mediaItem = await storage.updateMediaItem(req.params.id, updates);
@@ -208,7 +210,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.delete("/api/media/:id", async (req, res) => {
+  app.delete("/api/media/:id", async (req: Request, res: Response) => {
     try {
       const success = await storage.deleteMediaItem(req.params.id);
       if (!success) {
@@ -221,7 +223,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
   });
 
   // Refresh metadata using multiScraper
-  app.post("/api/media/:id/refresh", async (req, res) => {
+  app.post("/api/media/:id/refresh", async (req: Request, res: Response) => {
     try {
       const mediaItem = await storage.getMediaItem(req.params.id);
       if (!mediaItem) {
@@ -265,7 +267,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
   });
 
   // Check and fetch metadata for specific media item
-  app.post("/api/media/:id/metadata", async (req, res) => {
+  app.post("/api/media/:id/metadata", async (req: Request, res: Response) => {
     try {
       const mediaItem = await storage.getMediaItem(req.params.id);
       if (!mediaItem) {
@@ -299,7 +301,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
   });
 
   // Get download URL for media item
-  app.get("/api/media/:id/download", async (req, res) => {
+  app.get("/api/media/:id/download", async (req: Request, res: Response) => {
     try {
       const { apiId } = req.query;
       const mediaItem = await storage.getMediaItem(req.params.id);
@@ -381,7 +383,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
   });
 
   // Tags Routes
-  app.get("/api/tags", async (req, res) => {
+  app.get("/api/tags", async (req: Request, res: Response) => {
     try {
       const tags = await storage.getTags();
       res.json(tags || []);
@@ -391,7 +393,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.post("/api/tags", async (req, res) => {
+  app.post("/api/tags", async (req: Request, res: Response) => {
     try {
       const validatedData = insertTagSchema.parse(req.body);
       const tag = await storage.createTag(validatedData);
@@ -404,7 +406,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.delete("/api/tags/:id", async (req, res) => {
+  app.delete("/api/tags/:id", async (req: Request, res: Response) => {
     try {
       const success = await storage.deleteTag(req.params.id);
       if (!success) {
@@ -417,7 +419,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
   });
 
   // Media Item Tags Routes
-  app.post("/api/media/:mediaId/tags/:tagId", async (req, res) => {
+  app.post("/api/media/:mediaId/tags/:tagId", async (req: Request, res: Response) => {
     try {
       const { mediaId, tagId } = req.params;
       const result = await storage.addTagToMediaItem(mediaId, tagId);
@@ -427,7 +429,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.delete("/api/media/:mediaId/tags/:tagId", async (req, res) => {
+  app.delete("/api/media/:mediaId/tags/:tagId", async (req: Request, res: Response) => {
     try {
       const { mediaId, tagId } = req.params;
       const success = await storage.removeTagFromMediaItem(mediaId, tagId);
@@ -441,7 +443,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
   });
 
   // Categories Routes
-  app.post("/api/categories", async (req, res) => {
+  app.post("/api/categories", async (req: Request, res: Response) => {
     try {
       const validatedData = insertCategorySchema.parse(req.body);
       const category = await storage.createCategory(validatedData);
@@ -454,7 +456,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.delete("/api/categories/:id", async (req, res) => {
+  app.delete("/api/categories/:id", async (req: Request, res: Response) => {
     try {
       const success = await storage.deleteCategory(req.params.id);
       if (!success) {
@@ -467,7 +469,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
   });
 
   // Media Item Categories Routes
-  app.post("/api/media/:mediaId/categories/:categoryId", async (req, res) => {
+  app.post("/api/media/:mediaId/categories/:categoryId", async (req: Request, res: Response) => {
     try {
       const { mediaId, categoryId } = req.params;
       const result = await storage.addCategoryToMediaItem(mediaId, categoryId);
@@ -477,7 +479,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.delete("/api/media/:mediaId/categories/:categoryId", async (req, res) => {
+  app.delete("/api/media/:mediaId/categories/:categoryId", async (req: Request, res: Response) => {
     try {
       const { mediaId, categoryId } = req.params;
       const success = await storage.removeCategoryFromMediaItem(mediaId, categoryId);
@@ -491,7 +493,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
   });
 
   // API Options Routes
-  app.post("/api/api-options", async (req, res) => {
+  app.post("/api/api-options", async (req: Request, res: Response) => {
     try {
       const apiOption = await storage.createApiOption(req.body);
       res.status(201).json(apiOption);
@@ -501,7 +503,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.put("/api/api-options/:id", async (req, res) => {
+  app.put("/api/api-options/:id", async (req: Request, res: Response) => {
     try {
       const apiOption = await storage.updateApiOption(req.params.id, req.body);
       if (!apiOption) {
@@ -514,7 +516,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.delete("/api/api-options/:id", async (req, res) => {
+  app.delete("/api/api-options/:id", async (req: Request, res: Response) => {
     try {
       const deleted = await storage.deleteApiOption(req.params.id);
       if (!deleted) {
@@ -527,7 +529,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.post("/api/rapidapi-proxy", async (req, res) => {
+  app.post("/api/rapidapi-proxy", async (req: Request, res: Response) => {
     try {
         const { link } = req.body;
 
@@ -554,7 +556,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.post("/api/playertera-proxy", async (req, res) => {
+  app.post("/api/playertera-proxy", async (req: Request, res: Response) => {
     const url = req.body.url;
     if (!url) {
         return res.status(400).json({ error: "Missing 'url' in request body" });
@@ -588,7 +590,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.post("/api/tera-downloader-cc-proxy", async (req, res) => {
+  app.post("/api/tera-downloader-cc-proxy", async (req: Request, res: Response) => {
     const { url } = req.body;
     if (!url) {
       return res.status(400).json({ error: "URL is required" });
@@ -613,7 +615,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.get("/api/tera-fast-proxy", async (req, res) => {
+  app.get("/api/tera-fast-proxy", async (req: Request, res: Response) => {
     const { url } = req.query;
     const key = "C7mAq";
     if (!url) return res.status(400).json({ error: "Missing url" });
@@ -642,7 +644,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.post("/api/teradwn-proxy", async (req, res) => {
+  app.post("/api/teradwn-proxy", async (req: Request, res: Response) => {
     const { link } = req.body;
     if (!link) {
       return res.status(400).json({ error: "Link is required" });
@@ -673,7 +675,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.post("/api/iteraplay-proxy", async (req, res) => {
+  app.post("/api/iteraplay-proxy", async (req: Request, res: Response) => {
     const link = req.body.link;
     if (!link) {
         return res.status(400).json({ error: "Missing 'link' in request body" });
@@ -707,7 +709,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.get("/api/ronnieverse-client", async (req, res) => {
+  app.get("/api/ronnieverse-client", async (req: Request, res: Response) => {
     const { url } = req.query;
     if (!url) {
       return res.status(400).json({ error: "URL is required" });
@@ -729,7 +731,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.post("/api/raspywave-proxy", async (req, res) => {
+  app.post("/api/raspywave-proxy", async (req: Request, res: Response) => {
     const link = req.body.link;
     if (!link) {
         return res.status(400).json({ error: "Missing 'link' in request body" });
@@ -763,6 +765,51 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
   });
 
   const httpServer = createServer(app);
+  // WebSocket setup
+  const wss = new WebSocketServer({ server: httpServer });
+
+  wss.on('connection', (ws) => {
+    console.log('WebSocket client connected');
+
+    ws.on('message', (message) => {
+      console.log('Received:', message.toString());
+    });
+
+    ws.on('close', () => {
+      console.log('WebSocket client disconnected');
+    });
+  });
+
+  // API Routes
+  app.get('/api/media', async (req: Request, res: Response) => {
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 20;
+      const offset = (page - 1) * limit;
+
+      // TODO: Implement pagination with storage
+      const media = await storage.getMedia(limit, offset);
+      res.json({ media, page, limit });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch media' });
+    }
+  });
+
+  app.post('/api/media', async (req: Request, res: Response) => {
+    try {
+      const { urls } = req.body;
+      // TODO: Implement bulk media creation
+      const results = [];
+      for (const url of urls) {
+        const media = await storage.addMedia({ url, title: '', status: 'pending' });
+        results.push(media);
+      }
+      res.json({ results });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to add media' });
+    }
+  });
+
   return httpServer;
 }
 

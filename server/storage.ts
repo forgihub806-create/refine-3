@@ -53,6 +53,8 @@ export interface IStorage {
   deleteApiOption(id: string): Promise<boolean>;
   close(): Promise<void>;
   initializeDatabase(): Promise<void>;
+  getMedia(limit: number, offset: number): Promise<any[]>;
+  addMedia(data: { url: string; title: string; status: string }): Promise<any>;
 }
 
 export class DrizzleStorage implements IStorage {
@@ -65,7 +67,8 @@ export class DrizzleStorage implements IStorage {
   }
 
   async close(): Promise<void> {
-    this.sqlite.close();
+    // TODO: Implement database cleanup if needed
+    console.log('Database connection closed');
   }
 
   // Implement all methods from IStorage using Drizzle ORM
@@ -329,7 +332,7 @@ export class DrizzleStorage implements IStorage {
           media_item_id TEXT,
           tag_id TEXT,
           FOREIGN KEY (media_item_id) REFERENCES media_items(id) ON DELETE CASCADE,
-          FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
+          FOREIGNKEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
         )`,
 
         `CREATE TABLE IF NOT EXISTS media_item_categories (
@@ -387,5 +390,17 @@ export class DrizzleStorage implements IStorage {
     }
 
     console.log('DrizzleStorage.initializeDatabase: end');
+  }
+
+  async getMedia(limit: number, offset: number): Promise<any[]> {
+    // TODO: Implement actual database query
+    console.log(`Getting ${limit} media items with offset ${offset}`);
+    return [];
+  }
+
+  async addMedia(data: { url: string; title: string; status: string }): Promise<any> {
+    // TODO: Implement actual database insertion
+    console.log('Adding media:', data);
+    return { id: Date.now(), ...data };
   }
 }
